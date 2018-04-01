@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>Pebble Flow</title>
+<script>var exports = {};/*Hack to handle NPM package*/</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/90/three.min.js"></script>
+<script src="https://cdn.rawgit.com/mrdoob/stats.js/r17/build/stats.min.js"></script>
+<script src="https://cdn.rawgit.com/Pomax/bezierjs/v2.2.5/bezier.js"></script>
+<script src="https://cdn.rawgit.com/robbrit/randgen/5e853df3/lib/randgen.js"></script>
+<script src="https://cdn.rawgit.com/gorhill/Javascript-Voronoi/1.0.0/rhill-voronoi-core.min.js"></script>
+<style>
+	html, body { margin: 0; padding: 0; height: 100%; overflow: hidden }
+	canvas { width: 100%; height: 100% }
+</style>
+</head>
+<body>
+<script>
+
+// Config
+var config = {
+	"frames_per_second": 60,
+	"seconds_per_observation": 20,
+	"palettes": {
+		"sunrise": {
+			"background_a": "#fffee8",
+			"background_b": "#f9f6d2",
+			"base": "#c8d2e9",
+			"alt_a": "#ffa321",
+			"alt_b": "#5498fc",
+			"outline": "#fef666",
+			"base_alpha": 200
+		},
+		"sunny": {
+			"background_a": "#9ac4ff",
+			"background_b": "#508ecc",
+			"base": "#cde5ff",
+			"alt_a": "#fff3ad",
+			"alt_b": "#fef365",
+			"outline": "#fff7d6",
+			"base_alpha": 150
+		},
+		"cloudy": {
+			"background_a": "#64758c",
+			"background_b": "#5b697d",
+			"base": "#a3b2be",
+			"alt_a": "#ebedf2",
+			"alt_b": "#34445a",
+			"outline": "#d0d5d9",
+			"base_alpha": 100
+		},
+		"sunset": {
+			"background_a": "#72113D",
+			"background_b": "#490728",
+			"base": "#d31c0e",
+			"alt_a": "#ff9000",
+			"alt_b": "#fece14",
+			"outline": "#ffdc6c",
+			"base_alpha": 150
+		},
+		"evening": {
+			"background_a": "#5274b4",
+			"background_b": "#211b1f",
+			"base": "#1c2934",
+			"alt_a": "#66302f",
+			"alt_b": "#211b1f",
+			"outline": "#6c6c7a",
+			"base_alpha": 100
+		}
+	},
+	"stroke_weight": 1.0,
+	"outline_alpha": 255,
+	"region_alpha": 255,
+	"font_family": "Arial",
+	"font_size": 36,
+	"draw_qr": true,
+	"qr_url": "http://www.sas.com",
+	"qr_size_height_ratio": 0.1,
+	"apply_blur": true,
+	"blur_points": 10,
+	"blur_radius": 1,
+	"point_spacing": 7,
+	"point_jitter": 0.75,
+	"equatorial_stddev_ratio": 1.00,
+	"equatorial_thinning_iterations": 10,
+	"rand_curve_iterations": 3,
+	"rand_curve_step": 100,
+	"rand_curve_walk_diff_ratio": 0.3,
+	"rand_walk_thin_dist_ratio": 0.18,
+	"simplify_epsilon": 6.0,
+	"region_scale": 0.9,
+	"value_impact_dist_ratio": 0.33,
+	"sun_impact_dist_ratio": 0.66,
+	"debug": false
+}
+
+// Functions
+function _getPointGrid( bounds, x_spacing, y_spacing, jitter ) {
+  
+	var points = [];
+	
+	x_grid_width = Math.floor( bounds.getSize().x / x_spacing );
+	y_grid_width = Math.floor( bounds.getSize().y / y_spacing );
+	
+	for ( x = 0; x < x_grid_width; x++) {
+	  for ( y = 0; y < y_grid_width; y++) {
+	    var pnt = new THREE.Vector3( bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ), 
+	                          		bounds.min.y + y * y_spacing - ( ( -jitter * 0.5 ) * y_spacing ) + ( jitter * runif( 0, y_spacing ) ),
+	                          		0 );
+	    points.push( pnt );
+	  }
+	}
+	
+	return points;
+}
+
+function _getPointPerimeter( bounds, x_spacing, y_spacing, jitter ) {
+	  
+	var points = [];
+	
+	var new_bounds = bounds.clone();
+	new_bounds.min.x = new_bounds.min.x - x_spacing*2;
+	new_bounds.min.y = new_bounds.min.y - y_spacing*2;
+	new_bounds.max.x = new_bounds.max.x + x_spacing*2;
+	new_bounds.max.y = new_bounds.max.y + y_spacing*2;
+	
+	x_grid_width = Math.floor( new_bounds.getSize().x / x_spacing );
+	y_grid_width = Math.floor( new_bounds.getSize().y / y_spacing );
+	
+	var xs = [ 0, x_grid_width ];
+	var ys = [ 0, y_grid_width ];
+	
+	for ( x of xs ) {
+	  for ( y = 0; y < y_grid_width; y++ ) {
+	    var pnt = new THREE.Vector3( new_bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ), 
+	    								new_bounds.min.y + y * y_spacing - ( ( -jitter * 0.5 ) * y_spacing ) + ( jitter * runif( 0, y_spacing ) ),
+	                          		0 );
+	    points.push( pnt );
+	  }
+	}
+	for ( y of ys ) {
+		for ( x = 0; x < x_grid_width; x++) {
+			var pnt = new THREE.Vector3( new_bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ), 
+										new_bounds.min.y + y * y_spacing - ( ( -jitter * 0.5 ) * y_spacing ) + ( jitter * runif( 0, y_spacing ) ),
+              							0 );
+			points.push( pnt );
+		}
+	}
+	
+	return points;
+}
+
+function _getThinnedPointsAroundHorizontalLine( points, y_line, std_deviation ) {
+
+	var kept_points = [];
+	
+	for ( var pnt of points ) {
+		y_dist = Math.abs( y_line - pnt.y );
+		rand_y_dist = Math.abs( y_line - rnorm( y_line, std_deviation ) );
+		
+		if ( y_dist > rand_y_dist ) {
+			kept_points.push( pnt );
+		}
+	}
+	
+	return kept_points;
+}
+
+function _getVoronoiShapes( points, bounds, smooth = false ) {
+	
+	var shapes = [];
+	
+	var v = new Voronoi();
+	var bb = { xl: bounds.min.x, xr: bounds.max.x, yt: bounds.min.y, yb: bounds.max.y };
+	var vDiagram = v.compute( points, bounds );
+	
+	for ( cell of vDiagram.cells ) {
+		if ( cell.site.x > bb.xl && cell.site.x < bb.xr && cell.site.y > bb.yt && cell.site.y < bb.yb ) {
+			var shape = new THREE.Shape();
+			if ( !smooth ) {
+			    for ( var i = 0; i < cell.halfedges.length; i++ ) {
+			        var start = cell.halfedges[i].getStartpoint();
+			        var end = cell.halfedges[i].getEndpoint();
+			        if ( i === 0 ) {
+			            shape.moveTo( start.x, start.y );
+			        }
+			        shape.lineTo( end.x, end.y );
+			    }
+			} else {
+				var starts = [];
+				var ends = [];
+				var mids = [];
+				for ( var i = 0; i < cell.halfedges.length; i++ ) {
+			        starts.push( cell.halfedges[i].getStartpoint() );
+			        ends.push( cell.halfedges[i].getEndpoint() );
+			        mids.push( { x: 0.5 * starts[i].x + 0.5 * ends[i].x, y: 0.5 * starts[i].y + 0.5 * ends[i].y } )
+				}
+				shape.moveTo( mids[0].x, mids[0].y );
+				for ( var i = 0; i < mids.length - 1; i++ ) {
+					i_next = ( i + 1 ) % mids.length;
+			        shape.quadraticCurveTo( ends[i].x, ends[i].y, mids[i_next].x, mids[i_next].y );
+			    }
+			}
+	    		shapes.push( shape )
+	    }
+	}
+	
+	return shapes;
+}
+
+//Globals
+var camera, scene, renderer;
+
+var width, height, bounds;
+
+var points;
+
+var stats;
+
+// Init
+function init() {
+	setup();
+	update();
+}
+
+// Setup
+function setup() {
+	
+	width = window.innerWidth;
+	height = window.innerHeight;
+	bounds = new THREE.Box2( new THREE.Vector2( 0, 0 ), new THREE.Vector2( width, height ) );
+	
+	renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer.setPixelRatio( window.devicePixelRatio );
+	renderer.setSize( width, height );
+	document.body.appendChild( renderer.domElement );
+
+	var aspect = width / height;
+	camera = new THREE.OrthographicCamera( 0, width, 0, height );
+	//camera = new THREE.OrthographicCamera( -50, width+50, -50, height+50 );
+	/* camera = new THREE.PerspectiveCamera( 75, aspect, 1, 3000 );*/
+	camera.position.z = 500;
+	
+	scene = new THREE.Scene();
+	scene.background = new THREE.Color( 0x5274b4 );
+	
+	var light = new THREE.PointLight( 0xffffff, 1, 0 );
+	light.position.set( width/3.0, height/2.0, -150 );
+	scene.add( light );
+	
+	points = _getPointGrid( bounds, config.point_spacing, config.point_spacing, config.point_jitter );
+	points = points.concat( _getPointPerimeter( bounds, config.point_spacing, config.point_spacing, 0.001 ) );
+	points = _getThinnedPointsAroundHorizontalLine( points, height / 2, config.equatorial_stddev_ratio * height );
+	vshapes = _getVoronoiShapes( points, bounds, smooth = true );
+	for ( vshape of vshapes ) {
+		var geometry = new THREE.ShapeGeometry( vshape );
+		
+		var material = new THREE.MeshPhongMaterial( {
+			color: Math.random() * 0xffffff,
+			emissive: 0x333333,
+			side: THREE.DoubleSide,
+			flatShading: true
+		} );
+		material.wireframe = false;
+		var mesh = new THREE.Mesh( geometry, material );
+		mesh.scale.set( 0.75, 0.75, 0.75 );
+		scene.add( mesh );	
+	}
+	
+	if ( config.debug ) {
+		var pointGeom = new THREE.Geometry();
+		for ( p of points ) {
+			pointGeom.vertices.push( p );
+		}
+		var pointMat = new THREE.PointsMaterial( { color: 0x000000, size: 2, sizeAttenuation: false } );
+		var vPoints = new THREE.Points( pointGeom, pointMat );
+		scene.add( vPoints );
+	}
+	
+	// Initialize stats overlay
+	if ( config.debug ) {
+		stats = new Stats();
+		document.body.appendChild( stats.dom );
+	}
+}
+
+// Update
+function update() {
+	render();
+	requestAnimationFrame( update );
+	
+	if ( config.debug ) { stats.update(); }
+}
+
+// Render
+function render() {
+
+	/* p.background( 255 );
+	
+	for ( var pnt of points ) {
+		p.point( pnt.x, pnt.y );
+	}
+	
+	if ( p.mouseIsPressed ) {
+		p.fill( 0 );
+	} else {
+		p.fill( 255 );
+	}
+	p.ellipse( p.mouseX, p.mouseY, 80, 80 ); */
+	
+	renderer.render( scene, camera );
+}
+
+init();
+
+</script>
+</body>
+</html>

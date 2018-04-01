@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>Pebble Flow</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.0/p5.js"></script>
+<script src="https://cdn.rawgit.com/Pomax/bezierjs/v2.2.5/bezier.js"></script>
+<script>
+var art = function( p ) {
+
+// Config
+var config = {
+	"frames_per_second": 60,
+	"seconds_per_observation": 20,
+	"palettes": {
+		"sunrise": {
+			"background_a": "#fffee8",
+			"background_b": "#f9f6d2",
+			"base": "#c8d2e9",
+			"alt_a": "#ffa321",
+			"alt_b": "#5498fc",
+			"outline": "#fef666",
+			"base_alpha": 200
+		},
+		"sunny": {
+			"background_a": "#9ac4ff",
+			"background_b": "#508ecc",
+			"base": "#cde5ff",
+			"alt_a": "#fff3ad",
+			"alt_b": "#fef365",
+			"outline": "#fff7d6",
+			"base_alpha": 150
+		},
+		"cloudy": {
+			"background_a": "#64758c",
+			"background_b": "#5b697d",
+			"base": "#a3b2be",
+			"alt_a": "#ebedf2",
+			"alt_b": "#34445a",
+			"outline": "#d0d5d9",
+			"base_alpha": 100
+		},
+		"sunset": {
+			"background_a": "#72113D",
+			"background_b": "#490728",
+			"base": "#d31c0e",
+			"alt_a": "#ff9000",
+			"alt_b": "#fece14",
+			"outline": "#ffdc6c",
+			"base_alpha": 150
+		},
+		"evening": {
+			"background_a": "#5274b4",
+			"background_b": "#211b1f",
+			"base": "#1c2934",
+			"alt_a": "#66302f",
+			"alt_b": "#211b1f",
+			"outline": "#6c6c7a",
+			"base_alpha": 100
+		}
+	},
+	"stroke_weight": 1.0,
+	"outline_alpha": 255,
+	"region_alpha": 255,
+	"font_family": "Arial",
+	"font_size": 36,
+	"draw_qr": true,
+	"qr_url": "http://www.sas.com",
+	"qr_size_height_ratio": 0.1,
+	"apply_blur": true,
+	"blur_points": 10,
+	"blur_radius": 1,
+	"point_spacing": 6,
+	"point_jitter": 0.75,
+	"equatorial_stddev_ratio": 1.00,
+	"equatorial_thinning_iterations": 10,
+	"rand_curve_iterations": 3,
+	"rand_curve_step": 100,
+	"rand_curve_walk_diff_ratio": 0.3,
+	"rand_walk_thin_dist_ratio": 0.18,
+	"simplify_epsilon": 6.0,
+	"region_scale": 0.9,
+	"value_impact_dist_ratio": 0.33,
+	"sun_impact_dist_ratio": 0.66
+}
+
+// Globals
+var width;
+var height;
+
+var points;
+
+// Functions
+function _getPointGrid( grid_width, grid_height, x_spacing, y_spacing, jitter ) {
+  
+	var points = [];
+	
+	x_grid_width = p.floor( grid_width / x_spacing );
+	y_grid_width = p.floor( grid_height / y_spacing );
+	
+	
+	for ( x = 0; x < x_grid_width; x++) {
+	  for ( y = 0; y < y_grid_width; y++) {
+	    pnt = p.createVector( x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * p.random( x_spacing ) ), 
+	                          y * y_spacing - ( ( -jitter * 0.5 ) * y_spacing ) + ( jitter * p.random( y_spacing ) ) );
+	    pnt.x = p.constrain( pnt.x, 0.1, grid_width - 0.1 );
+	    pnt.y = p.constrain( pnt.y, 0.1, grid_height - 0.1 );
+	    points.push( pnt );
+	  }
+	}
+	
+	return points;
+}
+
+function _getThinnedPointsAroundHorizontalLine( points, y_line, std_deviation ) {
+
+	var new_points = [];
+	
+	for ( var pnt of points ) {
+		y_dist = p.abs( y_line - pnt.y );
+		rand_y_dist = p.abs( y_line - p.randomGaussian( y_line, std_deviation ) );
+		
+		if ( y_dist > rand_y_dist ) {
+			new_points.push( pnt );
+		}
+	}
+	
+	return new_points;
+}
+
+// Setup
+p.setup = function() {
+	
+	width = p.windowWidth;
+	height = p.windowHeight;
+	
+	p.createCanvas( width, height );
+	
+	points = _getPointGrid( width, height, config.point_spacing, config.point_spacing, config.point_jitter );
+	points = _getThinnedPointsAroundHorizontalLine( points, height / 2, config.equatorial_stddev_ratio * height );
+  
+	
+}
+
+// Draw Loop
+p.draw = function() {
+
+	p.background( 255 );
+	
+	for ( var pnt of points ) {
+		p.point( pnt.x, pnt.y );
+	}
+	
+	if ( p.mouseIsPressed ) {
+		p.fill( 0 );
+	} else {
+		p.fill( 255 );
+	}
+	p.ellipse( p.mouseX, p.mouseY, 80, 80 );
+}
+
+};
+var myp5 = new p5( art );
+</script>
+<style>
+html, body {
+	padding: 0;
+	margin: 0;
+}
+</style>
+</head>
+<body>
+
+</body>
+</html>
