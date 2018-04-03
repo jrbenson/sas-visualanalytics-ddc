@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 
 <title>Pebble Flow</title>
-<script>var exports = {};/*Hack to handle NPM package*/</script>
+<script>let exports = {};/*Hack to handle NPM package*/</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/90/three.min.js"></script>
 <script src="https://cdn.rawgit.com/mrdoob/stats.js/r17/build/stats.min.js"></script>
 <script src="https://cdn.rawgit.com/Pomax/bezierjs/v2.2.5/bezier.js"></script>
@@ -19,7 +19,7 @@
 <script>
 
 // Config
-var config = {
+let config = {
 	"frames_per_second": 60,
 	"seconds_per_observation": 20,
 	"palettes": {
@@ -92,48 +92,48 @@ var config = {
 	"region_scale": 0.9,
 	"value_impact_dist_ratio": 0.33,
 	"sun_impact_dist_ratio": 0.66,
-	"debug": false
+	"debug": true
 }
 
 // Functions
-function _getPointGrid( bounds, x_spacing, y_spacing, jitter ) {
-  
-	var points = [];
-	
+function getPointGrid( bounds, x_spacing, y_spacing, jitter ) {
+
+	let points = [];
+
 	x_grid_width = Math.floor( bounds.getSize().x / x_spacing );
 	y_grid_width = Math.floor( bounds.getSize().y / y_spacing );
-	
+
 	for ( x = 0; x < x_grid_width; x++) {
 	  for ( y = 0; y < y_grid_width; y++) {
-	    var pnt = new THREE.Vector3( bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ), 
+	    let pnt = new THREE.Vector3( bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ),
 	                          		bounds.min.y + y * y_spacing - ( ( -jitter * 0.5 ) * y_spacing ) + ( jitter * runif( 0, y_spacing ) ),
 	                          		0 );
 	    points.push( pnt );
 	  }
 	}
-	
+
 	return points;
 }
 
-function _getPointPerimeter( bounds, x_spacing, y_spacing, jitter ) {
-	  
-	var points = [];
-	
-	var new_bounds = bounds.clone();
+function getPointPerimeter( bounds, x_spacing, y_spacing, jitter ) {
+
+	let points = [];
+
+	let new_bounds = bounds.clone();
 	new_bounds.min.x = new_bounds.min.x - x_spacing*2;
 	new_bounds.min.y = new_bounds.min.y - y_spacing*2;
 	new_bounds.max.x = new_bounds.max.x + x_spacing*2;
 	new_bounds.max.y = new_bounds.max.y + y_spacing*2;
-	
+
 	x_grid_width = Math.floor( new_bounds.getSize().x / x_spacing );
 	y_grid_width = Math.floor( new_bounds.getSize().y / y_spacing );
-	
-	var xs = [ 0, x_grid_width ];
-	var ys = [ 0, y_grid_width ];
-	
+
+	let xs = [ 0, x_grid_width ];
+	let ys = [ 0, y_grid_width ];
+
 	for ( x of xs ) {
 	  for ( y = 0; y < y_grid_width; y++ ) {
-	    var pnt = new THREE.Vector3( new_bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ), 
+	    let pnt = new THREE.Vector3( new_bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ),
 	    								new_bounds.min.y + y * y_spacing - ( ( -jitter * 0.5 ) * y_spacing ) + ( jitter * runif( 0, y_spacing ) ),
 	                          		0 );
 	    points.push( pnt );
@@ -141,63 +141,63 @@ function _getPointPerimeter( bounds, x_spacing, y_spacing, jitter ) {
 	}
 	for ( y of ys ) {
 		for ( x = 0; x < x_grid_width; x++) {
-			var pnt = new THREE.Vector3( new_bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ), 
+			let pnt = new THREE.Vector3( new_bounds.min.x + x * x_spacing - ( ( -jitter * 0.5 ) * x_spacing ) + ( jitter * runif( 0, x_spacing ) ),
 										new_bounds.min.y + y * y_spacing - ( ( -jitter * 0.5 ) * y_spacing ) + ( jitter * runif( 0, y_spacing ) ),
               							0 );
 			points.push( pnt );
 		}
 	}
-	
+
 	return points;
 }
 
-function _getThinnedPointsAroundHorizontalLine( points, y_line, std_deviation ) {
+function getThinnedPointsAroundHorizontalLine( points, y_line, std_deviation ) {
 
-	var kept_points = [];
-	
-	for ( var pnt of points ) {
+	let kept_points = [];
+
+	for ( let pnt of points ) {
 		y_dist = Math.abs( y_line - pnt.y );
 		rand_y_dist = Math.abs( y_line - rnorm( y_line, std_deviation ) );
-		
+
 		if ( y_dist > rand_y_dist ) {
 			kept_points.push( pnt );
 		}
 	}
-	
+
 	return kept_points;
 }
 
-function _getVoronoiShapes( points, bounds, smooth = false ) {
-	
-	var shapes = [];
-	
-	var v = new Voronoi();
-	var bb = { xl: bounds.min.x, xr: bounds.max.x, yt: bounds.min.y, yb: bounds.max.y };
-	var vDiagram = v.compute( points, bounds );
-	
+function getVoronoiShapes( points, bounds, smooth = false ) {
+
+	let shapes = [];
+
+	let v = new Voronoi();
+	let bb = { xl: bounds.min.x, xr: bounds.max.x, yt: bounds.min.y, yb: bounds.max.y };
+	let vDiagram = v.compute( points, bounds );
+
 	for ( cell of vDiagram.cells ) {
 		if ( cell.site.x > bb.xl && cell.site.x < bb.xr && cell.site.y > bb.yt && cell.site.y < bb.yb ) {
-			var shape = new THREE.Shape();
+			let shape = new THREE.Shape();
 			if ( !smooth ) {
-			    for ( var i = 0; i < cell.halfedges.length; i++ ) {
-			        var start = cell.halfedges[i].getStartpoint();
-			        var end = cell.halfedges[i].getEndpoint();
+			    for ( let i = 0; i < cell.halfedges.length; i++ ) {
+			        let start = cell.halfedges[i].getStartpoint();
+			        let end = cell.halfedges[i].getEndpoint();
 			        if ( i === 0 ) {
 			            shape.moveTo( start.x, start.y );
 			        }
 			        shape.lineTo( end.x, end.y );
 			    }
 			} else {
-				var starts = [];
-				var ends = [];
-				var mids = [];
-				for ( var i = 0; i < cell.halfedges.length; i++ ) {
+				let starts = [];
+				let ends = [];
+				let mids = [];
+				for ( let i = 0; i < cell.halfedges.length; i++ ) {
 			        starts.push( cell.halfedges[i].getStartpoint() );
 			        ends.push( cell.halfedges[i].getEndpoint() );
 			        mids.push( { x: 0.5 * starts[i].x + 0.5 * ends[i].x, y: 0.5 * starts[i].y + 0.5 * ends[i].y } )
 				}
 				shape.moveTo( mids[0].x, mids[0].y );
-				for ( var i = 0; i < mids.length - 1; i++ ) {
+				for ( let i = 0; i < mids.length - 1; i++ ) {
 					i_next = ( i + 1 ) % mids.length;
 			        shape.quadraticCurveTo( ends[i].x, ends[i].y, mids[i_next].x, mids[i_next].y );
 			    }
@@ -205,18 +205,18 @@ function _getVoronoiShapes( points, bounds, smooth = false ) {
 	    		shapes.push( shape )
 	    }
 	}
-	
+
 	return shapes;
 }
 
 //Globals
-var camera, scene, renderer;
+let camera, scene, renderer;
 
-var width, height, bounds;
+let width, height, bounds;
 
-var points;
+let points;
 
-var stats;
+let stats;
 
 // Init
 function init() {
@@ -226,58 +226,65 @@ function init() {
 
 // Setup
 function setup() {
-	
+
 	width = window.innerWidth;
 	height = window.innerHeight;
 	bounds = new THREE.Box2( new THREE.Vector2( 0, 0 ), new THREE.Vector2( width, height ) );
-	
+
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( width, height );
 	document.body.appendChild( renderer.domElement );
 
-	var aspect = width / height;
+	let aspect = width / height;
 	camera = new THREE.OrthographicCamera( 0, width, 0, height );
 	//camera = new THREE.OrthographicCamera( -50, width+50, -50, height+50 );
 	/* camera = new THREE.PerspectiveCamera( 75, aspect, 1, 3000 );*/
 	camera.position.z = 500;
-	
+
 	scene = new THREE.Scene();
 	scene.background = new THREE.Color( 0x5274b4 );
-	
-	var light = new THREE.PointLight( 0xffffff, 1, 0 );
+
+	let light = new THREE.PointLight( 0xffffff, 1, 0 );
 	light.position.set( width/3.0, height/2.0, -150 );
 	scene.add( light );
-	
-	points = _getPointGrid( bounds, config.point_spacing, config.point_spacing, config.point_jitter );
-	points = points.concat( _getPointPerimeter( bounds, config.point_spacing, config.point_spacing, 0.001 ) );
-	points = _getThinnedPointsAroundHorizontalLine( points, height / 2, config.equatorial_stddev_ratio * height );
-	vshapes = _getVoronoiShapes( points, bounds, smooth = true );
+
+	let centers = new Map();
+	points = getPointGrid( bounds, config.point_spacing, config.point_spacing, config.point_jitter );
+	points = points.concat( getPointPerimeter( bounds, config.point_spacing, config.point_spacing, 0.001 ) );
+	points = getThinnedPointsAroundHorizontalLine( points, height / 2, config.equatorial_stddev_ratio * height );
+	vshapes = getVoronoiShapes( points, bounds, smooth = true );
 	for ( vshape of vshapes ) {
-		var geometry = new THREE.ShapeGeometry( vshape );
-		
-		var material = new THREE.MeshPhongMaterial( {
+		let geometry = new THREE.ShapeGeometry( vshape );
+		geometry.computeBoundingBox();
+		let center = geometry.boundingBox.getCenter();
+		geometry.translate( -center.x, -center.y, -center.z );
+		geometry.scale( 0.75, 0.75, 0.75 );
+		geometry.translate( center.x, center.y, center.z );
+		let material = new THREE.MeshPhongMaterial( {
 			color: Math.random() * 0xffffff,
 			emissive: 0x333333,
 			side: THREE.DoubleSide,
 			flatShading: true
 		} );
 		material.wireframe = false;
-		var mesh = new THREE.Mesh( geometry, material );
-		mesh.scale.set( 0.75, 0.75, 0.75 );
-		scene.add( mesh );	
+		let mesh = new THREE.Mesh( geometry, material );
+		
+		// mesh.scale.set( 0.75, 0.75, 0.75 );
+		// //mesh.scale.set( 8,8,8 );
+		scene.add( mesh );
 	}
-	
+
 	if ( config.debug ) {
-		var pointGeom = new THREE.Geometry();
+		let pointGeom = new THREE.Geometry();
 		for ( p of points ) {
 			pointGeom.vertices.push( p );
 		}
-		var pointMat = new THREE.PointsMaterial( { color: 0x000000, size: 2, sizeAttenuation: false } );
-		var vPoints = new THREE.Points( pointGeom, pointMat );
+		let pointMat = new THREE.PointsMaterial( { color: 0x000000, size: 2, sizeAttenuation: false } );
+		let vPoints = new THREE.Points( pointGeom, pointMat );
 		scene.add( vPoints );
 	}
-	
+
 	// Initialize stats overlay
 	if ( config.debug ) {
 		stats = new Stats();
@@ -289,7 +296,7 @@ function setup() {
 function update() {
 	render();
 	requestAnimationFrame( update );
-	
+
 	if ( config.debug ) { stats.update(); }
 }
 
@@ -297,18 +304,18 @@ function update() {
 function render() {
 
 	/* p.background( 255 );
-	
-	for ( var pnt of points ) {
+
+	for ( let pnt of points ) {
 		p.point( pnt.x, pnt.y );
 	}
-	
+
 	if ( p.mouseIsPressed ) {
 		p.fill( 0 );
 	} else {
 		p.fill( 255 );
 	}
 	p.ellipse( p.mouseX, p.mouseY, 80, 80 ); */
-	
+
 	renderer.render( scene, camera );
 }
 
