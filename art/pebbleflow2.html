@@ -11,8 +11,8 @@
 <script src="https://cdn.rawgit.com/robbrit/randgen/5e853df3/lib/randgen.js"></script>
 <script src="https://cdn.rawgit.com/gorhill/Javascript-Voronoi/1.0.0/rhill-voronoi-core.min.js"></script>
 <style>
-	html, body { margin: 0; padding: 0; height: 100%; overflow: hidden }
-	canvas { width: 100%; height: 100% }
+	html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+	canvas { width: 100%; height: 100%; }
 </style>
 </head>
 <body>
@@ -207,6 +207,25 @@ function getVoronoiShapes( points, bounds, smooth = false ) {
 	}
 
 	return shapes;
+}
+
+function getRandomWalkBezierCurve( x_start, y_start, x_end, y_end, x_step, y_step ) {
+ 
+	curve_points = [];
+	cur_x = x_start;
+	cur_y = y_start + random( y_end - y_start );
+	while ( cur_x <= x_end ) {
+		curve_points.push( new RPoint( cur_x, cur_y ) );
+
+		cur_x += x_step + random( x_step );
+
+		cur_y += -y_step + random( y_step * 2 );
+		cur_y = _clampBounce( cur_y, y_start, y_end, y_step );
+
+	}
+	curve_points.add( new RPoint( x_end, cur_y ) ); // Close the gap to the end and add last random point
+	return _getSmoothContainingPath( curve_points ); // Run through smoothing function and add to list
+ 
 }
 
 //Globals
