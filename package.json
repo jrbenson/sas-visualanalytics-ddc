@@ -1,0 +1,49 @@
+{
+  "name": "sas-va-ddc",
+  "version": "0.9.0",
+  "description": "Library for interacting with SAS Visual Analytics data-drive content object framework.",
+  "keywords": [
+    "SAS",
+    "Visual",
+    "Analytics",
+    "VA",
+    "DDC",
+    "Visualization"
+  ],
+  "author": "Riley Benson",
+  "license": "Apache-2.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.js",
+  "scripts": {
+    "test": "jest --config jestconfig.json",
+    "build:es6": "tsc",
+    "build:iife": "rollup -c",
+    "build:iife:min": "rollup --config rollup.config.min.js",
+    "build": "npm run build:es6 && npm run build:iife && npm run build:iife:min",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run format"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jrbenson/sas-va-ddc.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jrbenson/sas-va-ddc/issues"
+  },
+  "homepage": "https://github.com/jrbenson/sas-va-ddc#readme",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@types/jest": "^26.0.12",
+    "jest": "^26.4.2",
+    "prettier": "^2.1.1",
+    "rollup": "^2.26.9",
+    "rollup-plugin-terser": "^7.0.1",
+    "ts-jest": "^26.3.0",
+    "typescript": "^4.0.2"
+  },
+  "dependencies": {},
+  "files": [
+    "lib/**/*"
+  ]
+}
