@@ -42,7 +42,7 @@ interface MessageToVA {
 // Examples of valid selectedRows:
 // [0, 3, 4]
 // [{row: 0}, {row: 3}, {row: 4}]
-export function postSelectionMessage(resultName: string, selectedRows: (Array<number> | SelectionArray)) {
+export function postSelectionMessage(resultName: string, selectedRows: Array<number> | SelectionArray) {
   let selections: SelectionArray = []
   if (selectedRows && selectedRows.length > 0 && selectedRows[0].hasOwnProperty('row')) {
     selections = selectedRows as SelectionArray
@@ -73,16 +73,12 @@ export function postMessage(objMessage: MessageToVA) {
   window.parent.postMessage(objMessage, url)
 }
 
-export function getUrlParams(name = '') {
-  // If name is a parameter --> return name's value
-  // If name is not a parameter --> return null
-  // If name is not informed --> return object with all parameters: {name1:value1, name2:value2, name3:value3, ...}
-  var params: Record<string,string> = {}
-  var search = window.location.search.slice(window.location.search.indexOf('?') + 1)
-  var name_value = search.split('&')
+export function getUrlParams(): Record<string, string> {
+  let params: Record<string, string> = {}
 
-  name_value.forEach(function (pair, key) {
-    if (pair.indexOf('=') === -1) {
+  const search = window.location.search.slice(window.location.search.indexOf('?') + 1)
+  search.split('&').forEach((pair) => {
+    if (pair.includes('=')) {
       params[pair] = ''
     } else {
       params[decodeURIComponent(pair.substr(0, pair.indexOf('=')))] = decodeURIComponent(
@@ -91,5 +87,11 @@ export function getUrlParams(name = '') {
     }
   })
 
-  return name ? (name in params ? params[name] : null) : params
+  return params
+}
+
+export function getUrlParam(name: string): string | null {
+  const params = getUrlParams()
+
+  return name in params ? params[name] : null
 }
