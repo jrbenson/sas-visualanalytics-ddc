@@ -29,7 +29,7 @@ export interface VAFormat {
 export interface VAColumn {
   name: string
   label: string
-  type: 'string' | 'date' | 'number'
+  type: string
   usage?: 'quantitative' | 'categorical' | 'brush'
   aggregation?: string
   format?: VAFormat
