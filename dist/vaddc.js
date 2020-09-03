@@ -136,7 +136,7 @@ var ddc = (function (exports) {
     function getVAParameters(resultData) {
         var parameters = {};
         if (resultData.parameters) {
-            resultData.parameters.forEach(function (parameter, index) {
+            resultData.parameters.forEach(function (parameter) {
                 parameters[parameter.label] = parameter.value;
             });
         }
@@ -159,23 +159,26 @@ var ddc = (function (exports) {
     limitations under the License.
     */
     function setOnDataReceivedCallback(callback) {
-        const onMessage = function (evt) {
-            if (evt && evt.data && evt.data.hasOwnProperty('data')) {
-                callback(evt.data);
+        //   const onMessage = function (evt: any) {
+        //     if (evt && evt.data && evt.data.hasOwnProperty('data')) {
+        //       callback(evt.data)
+        //     }
+        //   }
+        window.addEventListener('message', (event) => {
+            if (event && event.data && event.data.hasOwnProperty('data')) {
+                callback(event.data);
             }
-        };
-        window.addEventListener('message', onMessage, false);
+        }, false);
     }
     // Examples of valid selectedRows:
     // [0, 3, 4]
     // [{row: 0}, {row: 3}, {row: 4}]
     function postSelectionMessage(resultName, selectedRows) {
-        var selections;
+        let selections = [];
         if (selectedRows && selectedRows.length > 0 && selectedRows[0].hasOwnProperty('row')) {
             selections = selectedRows;
         }
         else {
-            selections = [];
             selectedRows.forEach(function (selRow) {
                 selections.push({ row: selRow });
             });
@@ -186,10 +189,10 @@ var ddc = (function (exports) {
         };
         postMessage(message);
     }
-    function postInstructionalMessage(resultName, strMessage) {
+    function postInstructionalMessage(resultName, body) {
         var message = {
             resultName: resultName,
-            message: strMessage,
+            message: body,
         };
         postMessage(message);
     }

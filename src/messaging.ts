@@ -15,24 +15,39 @@ limitations under the License.
 */
 
 export function setOnDataReceivedCallback(callback: Function) {
-  const onMessage = function (evt: any) {
-    if (evt && evt.data && evt.data.hasOwnProperty('data')) {
-      callback(evt.data)
-    }
-  }
-  window.addEventListener('message', onMessage, false)
+  //   const onMessage = function (evt: any) {
+  //     if (evt && evt.data && evt.data.hasOwnProperty('data')) {
+  //       callback(evt.data)
+  //     }
+  //   }
+  window.addEventListener(
+    'message',
+    (event) => {
+      if (event && event.data && event.data.hasOwnProperty('data')) {
+        callback(event.data)
+      }
+    },
+    false
+  )
+}
+
+type SelectionArray = Array<{ row: number }>
+
+interface MessageToVA {
+  resultName: string
+  selections?: SelectionArray
+  message?: string
 }
 
 // Examples of valid selectedRows:
 // [0, 3, 4]
 // [{row: 0}, {row: 3}, {row: 4}]
-export function postSelectionMessage(resultName: string, selectedRows: Array<any>) {
-  var selections
+export function postSelectionMessage(resultName: string, selectedRows: (Array<number> | SelectionArray)) {
+  let selections: SelectionArray = []
   if (selectedRows && selectedRows.length > 0 && selectedRows[0].hasOwnProperty('row')) {
-    selections = selectedRows
+    selections = selectedRows as SelectionArray
   } else {
-    selections = []
-    selectedRows.forEach(function (selRow) {
+    selectedRows.forEach(function (selRow: any) {
       selections.push({ row: selRow })
     })
   }
@@ -44,15 +59,15 @@ export function postSelectionMessage(resultName: string, selectedRows: Array<any
   postMessage(message)
 }
 
-export function postInstructionalMessage(resultName: string, strMessage: string) {
+export function postInstructionalMessage(resultName: string, body: string) {
   var message = {
     resultName: resultName,
-    message: strMessage,
+    message: body,
   }
   postMessage(message)
 }
 
-export function postMessage(objMessage: any) {
+export function postMessage(objMessage: MessageToVA) {
   var url = window.location != window.parent.location ? document.referrer : document.location.href
 
   window.parent.postMessage(objMessage, url)
@@ -62,7 +77,7 @@ export function getUrlParams(name = '') {
   // If name is a parameter --> return name's value
   // If name is not a parameter --> return null
   // If name is not informed --> return object with all parameters: {name1:value1, name2:value2, name3:value3, ...}
-  var params: any = {}
+  var params: Record<string,string> = {}
   var search = window.location.search.slice(window.location.search.indexOf('?') + 1)
   var name_value = search.split('&')
 

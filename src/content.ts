@@ -14,6 +14,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+export interface VAParameter {
+  label: string
+  value: string | Array<string>
+}
+
+export interface VAFormat {
+  name: string
+  width?: number
+  precision?: number
+  formatString: string
+}
+
+export interface VAColumn {
+  name: string
+  label: string
+  type: 'string' | 'date' | 'number'
+  usage?: 'quantitative' | 'categorical' | 'brush'
+  aggregation?: string
+  format?: VAFormat
+}
+
+export interface VAMessage {
+  readonly version: string
+  readonly resultName: string
+  rowCount: number
+  availableRowCount: number
+  data: Array<Array<string | number | Date>>
+  columns: Array<VAColumn>
+  parameters: Array<VAParameter>
+}
+
 var _timeoutID: NodeJS.Timeout
 export function setupResizeListener(callback: Function) {
   const resizeEndEvent = document.createEvent('Event')
@@ -38,7 +69,7 @@ export function setupResizeListener(callback: Function) {
 // Example of expectedTypes: ["string", "number", "date"]
 // Example of optionalTypes: ["string", "number", "date"] OR "string" OR "number" OR "date" OR [] OR null
 //
-export function validateRoles(resultData: any, expectedTypes: Array<string>, optionalTypes: Array<string>) {
+export function validateRoles(resultData: VAMessage, expectedTypes: Array<string>, optionalTypes: Array<string>) {
   const columnsInfo = resultData.columns
   const numCols = columnsInfo.length
 
@@ -77,7 +108,7 @@ export function validateRoles(resultData: any, expectedTypes: Array<string>, opt
   return true
 }
 
-export function initializeSelections(resultData: any) {
+export function initializeSelections(resultData: VAMessage) {
   if (!resultData) return null
 
   var columnsInfo = resultData.columns
@@ -104,7 +135,7 @@ export function initializeSelections(resultData: any) {
   return selections
 }
 
-export function convertDateColumns(resultData: any) {
+export function convertDateColumns(resultData: VAMessage) {
   if (!resultData) return
 
   var columnsInfo = resultData.columns
@@ -115,7 +146,7 @@ export function convertDateColumns(resultData: any) {
       // <--- just to be safe
       if (colInfo.type == 'date') {
         for (var r = 0; r < arrayData.length; r++) {
-          var dateStr = arrayData[r][c].trim()
+          var dateStr = (arrayData[r][c] as string).trim()
 
           // One of the Date() constructors accept dates as strings in ISO format as input, such as:
           // "02/12/2012", "Feb/12/2012", "February 12, 2012", "12Feb2012", "Sunday, February 12, 2012", "2012/02/12"
@@ -143,10 +174,10 @@ export function convertDateColumns(resultData: any) {
 
 // Returns the object: {<param_label_1>:<param_value_1>, ... , <param_label_n>:<param_value_n>}
 // If <parameter_label> has multiple values, <param_value> is an array
-export function getVAParameters(resultData: any) {
-  var parameters: any = {}
+export function getVAParameters(resultData: VAMessage) {
+  var parameters: Record<string,string|Array<string>> = {}
   if (resultData.parameters) {
-    resultData.parameters.forEach(function (parameter: any, index: number) {
+    resultData.parameters.forEach(function (parameter: VAParameter) {
       parameters[parameter.label] = parameter.value
     })
   }
