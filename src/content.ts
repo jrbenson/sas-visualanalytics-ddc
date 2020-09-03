@@ -42,7 +42,7 @@ export interface VAMessage {
   availableRowCount: number
   data: Array<Array<string | number | Date>>
   columns: Array<VAColumn>
-  parameters: Array<VAParameter>
+  parameters?: Array<VAParameter>
 }
 
 var _timeoutID: NodeJS.Timeout
