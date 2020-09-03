@@ -30,7 +30,7 @@ export interface VAColumn {
   name: string
   label: string
   type: string
-  usage?: 'quantitative' | 'categorical' | 'brush'
+  usage?: string
   aggregation?: string
   format?: VAFormat
 }
