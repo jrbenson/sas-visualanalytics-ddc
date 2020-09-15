@@ -76,9 +76,9 @@ export function postMessage(objMessage: MessageToVA) {
 export function getUrlParams(): Record<string, string> {
   let params: Record<string, string> = {}
 
-  const search = window.location.search.slice(window.location.search.indexOf('?') + 1)
+  const search = window.location.search.slice(window.location.search.indexOf('?') + 2)
   search.split('&').forEach((pair) => {
-    if (pair.includes('=')) {
+    if (!pair.includes('=')) {
       params[pair] = ''
     } else {
       params[decodeURIComponent(pair.substr(0, pair.indexOf('=')))] = decodeURIComponent(

@@ -34,10 +34,14 @@ var ddc = (function (exports) {
             }, 25);
         });
     }
-    // Example of expectedTypes: ["string", "number", "date"]
-    // Example of optionalTypes: ["string", "number", "date"] OR "string" OR "number" OR "date" OR [] OR null
-    //
-    function validateRoles(resultData, expectedTypes, optionalTypes) {
+    /**
+     * A function to help validate whether the message object from VA contains the data types and order expected.
+     *
+     * @param resultData - The message object from the VA data-driven content object.
+     * @param expectedTypes - List of required types in string form in their expected order. For example: `["string", "number", "date"]`
+     * @param optionalTypes - Optional list of optional types. For example: `["string", "number", "date"]` or `"string"` or `"number"` or `"date"`
+     */
+    function validateRoles(resultData, expectedTypes, optionalTypes = null) {
         const columnsInfo = resultData.columns;
         const numCols = columnsInfo.length;
         // Check the required columns
@@ -54,7 +58,7 @@ var ddc = (function (exports) {
             if (optionalTypes === null) {
                 return false;
             }
-            if (typeof optionalTypes == 'object') {
+            if (typeof optionalTypes === 'object') {
                 // It's an array: (match each type in sequence or until one of the arrays end)
                 for (let c = expectedTypes.length, i = 0; c < numCols && i < optionalTypes.length; c++, i++) {
                     if (columnsInfo[c].type !== optionalTypes[i]) {
@@ -73,6 +77,10 @@ var ddc = (function (exports) {
         }
         return true;
     }
+    /**
+     *
+     * @param resultData
+     */
     function initializeSelections(resultData) {
         if (!resultData)
             return null;
@@ -200,25 +208,26 @@ var ddc = (function (exports) {
         var url = window.location != window.parent.location ? document.referrer : document.location.href;
         window.parent.postMessage(objMessage, url);
     }
-    function getUrlParams(name = '') {
-        // If name is a parameter --> return name's value
-        // If name is not a parameter --> return null
-        // If name is not informed --> return object with all parameters: {name1:value1, name2:value2, name3:value3, ...}
-        var params = {};
-        var search = window.location.search.slice(window.location.search.indexOf('?') + 1);
-        var name_value = search.split('&');
-        name_value.forEach(function (pair, key) {
-            if (pair.indexOf('=') === -1) {
+    function getUrlParams() {
+        let params = {};
+        const search = window.location.search.slice(window.location.search.indexOf('?') + 2);
+        search.split('&').forEach((pair) => {
+            if (!pair.includes('=')) {
                 params[pair] = '';
             }
             else {
                 params[decodeURIComponent(pair.substr(0, pair.indexOf('=')))] = decodeURIComponent(pair.substr(pair.indexOf('=') + 1));
             }
         });
-        return name ? (name in params ? params[name] : null) : params;
+        return params;
+    }
+    function getUrlParam(name) {
+        const params = getUrlParams();
+        return name in params ? params[name] : null;
     }
 
     exports.convertDateColumns = convertDateColumns;
+    exports.getUrlParam = getUrlParam;
     exports.getUrlParams = getUrlParams;
     exports.getVAParameters = getVAParameters;
     exports.initializeSelections = initializeSelections;

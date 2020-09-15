@@ -14,4 +14,5 @@ export {
   postInstructionalMessage,
   postMessage,
   getUrlParams,
+  getUrlParam,
 } from './messaging'

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+
 export interface VAParameter {
   label: string
   value: string | Array<string>
@@ -66,10 +67,15 @@ export function setupResizeListener(callback: Function) {
   })
 }
 
-// Example of expectedTypes: ["string", "number", "date"]
-// Example of optionalTypes: ["string", "number", "date"] OR "string" OR "number" OR "date" OR [] OR null
-//
-export function validateRoles(resultData: VAMessage, expectedTypes: Array<string>, optionalTypes: Array<string>) {
+
+/**
+ * A function to help validate whether the message object from VA contains the data types and order expected.
+ * 
+ * @param resultData - The message object from the VA data-driven content object.
+ * @param expectedTypes - List of required types in string form in their expected order. For example: `["string", "number", "date"]`
+ * @param optionalTypes - Optional list of optional types. For example: `["string", "number", "date"]` or `"string"` or `"number"` or `"date"`
+ */
+export function validateRoles(resultData: VAMessage, expectedTypes: Array<string>, optionalTypes: string | Array<string> | null = null ): boolean {
   const columnsInfo = resultData.columns
   const numCols = columnsInfo.length
 
@@ -88,7 +94,7 @@ export function validateRoles(resultData: VAMessage, expectedTypes: Array<string
     if (optionalTypes === null) {
       return false
     }
-    if (typeof optionalTypes == 'object') {
+    if (typeof optionalTypes === 'object') {
       // It's an array: (match each type in sequence or until one of the arrays end)
       for (let c = expectedTypes.length, i = 0; c < numCols && i < optionalTypes.length; c++, i++) {
         if (columnsInfo[c].type !== optionalTypes[i]) {
@@ -108,6 +114,10 @@ export function validateRoles(resultData: VAMessage, expectedTypes: Array<string
   return true
 }
 
+/**
+ * 
+ * @param resultData 
+ */
 export function initializeSelections(resultData: VAMessage) {
   if (!resultData) return null
 
