@@ -210,7 +210,7 @@ var ddc = (function (exports) {
     }
     function getUrlParams() {
         let params = {};
-        const search = window.location.search.slice(window.location.search.indexOf('?') + 2);
+        const search = window.location.search.slice(window.location.search.indexOf('?') + 1);
         search.split('&').forEach((pair) => {
             if (!pair.includes('=')) {
                 params[pair] = '';
