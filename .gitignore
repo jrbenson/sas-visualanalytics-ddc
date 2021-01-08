@@ -3,7 +3,8 @@
 Thumbs.db
 
 # Ignore built ts files
-lib/**/*
+dist/**/*
+!dist/vaddc.min.js
 
 # Dependency directory
 node_modules

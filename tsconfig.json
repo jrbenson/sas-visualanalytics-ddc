@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "outDir": "lib",
-    "target": "ES2020",
-    "module": "ES2020",
+    "outDir": "dist",
+    "target": "ES2015",
+    "module": "ES2015",
     "declaration": true,
     "strict": true,
     "moduleResolution": "node",
