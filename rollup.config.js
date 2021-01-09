@@ -1,7 +1,7 @@
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import { terser } from 'rollup-plugin-terser'
 import typescript from 'rollup-plugin-typescript2'
-import clean from 'rollup-plugin-clean'
+import del from 'rollup-plugin-delete'
 
 export default [
   {
@@ -21,6 +21,6 @@ export default [
         format: 'cjs',
       },
     ],
-    plugins: [clean(), typescript(), nodeResolve(), terser()],
+    plugins: [del({ runOnce: true, targets: 'dist/**/*'}), typescript(), nodeResolve(), terser()],
   },
 ]
